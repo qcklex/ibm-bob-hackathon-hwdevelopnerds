@@ -56,7 +56,7 @@
 > scan classpath : < 1 second
 > coverage and dependency analysis : < 1 second
 > build mutation tests : < 1 second
-> run mutation analysis : 3 seconds
+> run mutation analysis : 4 seconds
 --------------------------------------------------------------------------------
 > Total  : 4 seconds
 --------------------------------------------------------------------------------
