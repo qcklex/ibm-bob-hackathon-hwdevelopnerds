@@ -27,6 +27,13 @@ class MoneyUtilsTest {
                 () -> MoneyUtils.round(new BigDecimal("1.5"), -1));
     }
 
+    @Test
+    void round_zeroDecimalPlacesIsAllowed() {
+        // Kills the < 0 → <= 0 boundary mutant: decimalPlaces=0 must NOT throw
+        assertEquals(0, new BigDecimal("2").compareTo(
+                MoneyUtils.round(new BigDecimal("1.7"), 0)));
+    }
+
     // ── roundToNearest ───────────────────────────────────────────────────────
 
     @Test
@@ -75,6 +82,24 @@ class MoneyUtilsTest {
         List<BigDecimal> parts = MoneyUtils.split(new BigDecimal("99.99"), 1, 2);
         assertEquals(1, parts.size());
         assertEquals(0, new BigDecimal("99.99").compareTo(parts.get(0)));
+    }
+
+    @Test
+    void split_onePartIsAllowed() {
+        // Kills the parts < 1 → parts <= 1 boundary mutant: parts=1 must NOT throw
+        List<BigDecimal> result = MoneyUtils.split(new BigDecimal("5.00"), 1, 2);
+        assertEquals(1, result.size());
+        assertEquals(0, new BigDecimal("5.00").compareTo(result.get(0)));
+    }
+
+    @Test
+    void split_negativeTotalPreservesSum() {
+        // Kills the removed-negation NO_COVERAGE mutant: negative total must produce negative parts
+        List<BigDecimal> parts = MoneyUtils.split(new BigDecimal("-9.00"), 3, 2);
+        assertEquals(3, parts.size());
+        parts.forEach(p -> assertEquals(0, new BigDecimal("-3.00").compareTo(p)));
+        BigDecimal sum = parts.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        assertEquals(0, new BigDecimal("-9.00").compareTo(sum));
     }
 
     // ── applyDiscount ────────────────────────────────────────────────────────
@@ -156,6 +181,34 @@ class MoneyUtilsTest {
     void clamp_aboveMax() {
         BigDecimal result = MoneyUtils.clamp(
                 new BigDecimal("200"), BigDecimal.ZERO, new BigDecimal("100"));
+        assertEquals(0, new BigDecimal("100").compareTo(result));
+    }
+
+    @Test
+    void clamp_exactlyAtMin_returnsMin() {
+        // Kills compareTo(min) < 0 → <= 0 boundary mutant: value == min must return min (not be treated as below min)
+        BigDecimal result = MoneyUtils.clamp(BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("100"));
+        assertEquals(0, BigDecimal.ZERO.compareTo(result));
+    }
+
+    @Test
+    void clamp_exactlyAtMax_returnsMax() {
+        // Kills compareTo(max) > 0 → >= 0 boundary mutant: value == max must return max (not be treated as above max)
+        BigDecimal result = MoneyUtils.clamp(new BigDecimal("100"), BigDecimal.ZERO, new BigDecimal("100"));
+        assertEquals(0, new BigDecimal("100").compareTo(result));
+    }
+
+    @Test
+    void clamp_justBelowMin_returnsMin() {
+        // Confirms value just below min is clamped to min
+        BigDecimal result = MoneyUtils.clamp(new BigDecimal("-0.01"), BigDecimal.ZERO, new BigDecimal("100"));
+        assertEquals(0, BigDecimal.ZERO.compareTo(result));
+    }
+
+    @Test
+    void clamp_justAboveMax_returnsMax() {
+        // Confirms value just above max is clamped to max
+        BigDecimal result = MoneyUtils.clamp(new BigDecimal("100.01"), BigDecimal.ZERO, new BigDecimal("100"));
         assertEquals(0, new BigDecimal("100").compareTo(result));
     }
 }

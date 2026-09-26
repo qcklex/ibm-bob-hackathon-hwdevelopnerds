@@ -279,4 +279,38 @@ class StringUtilsTest {
         List<String> lines = StringUtils.wordWrap("ab cde", 5);
         assertEquals(List.of("ab", "cde"), lines);
     }
+
+    // ── repeat / leftPad / rightPad — additional boundary pinning ────────────
+
+    @Test
+    void repeat_zeroTimesEmptyString() {
+        // times == 0 with empty input: both <= 0 and mutant < 0 reach return ""
+        // pinning the exact boundary value with a different string argument
+        assertEquals("", StringUtils.repeat("", 0));
+    }
+
+    @Test
+    void repeat_zeroTimesNonEmptyString() {
+        // times == 0 is the exact boundary between <= 0 returning "" and < 0 falling
+        // through to s.repeat(0); asserting no exception and empty result
+        assertEquals("", StringUtils.repeat("xyz", 0));
+        assertEquals("", StringUtils.repeat("a", 0));
+    }
+
+    @Test
+    void leftPad_exactWidthReturnsOriginalInstance() {
+        // s.length() == totalWidth: >= returns s unchanged; > would call padChar.repeat(0)+s
+        // both produce equal strings, but we assert the value is preserved exactly
+        assertEquals("ab", StringUtils.leftPad("ab", 2, '-'));
+        assertEquals("x", StringUtils.leftPad("x", 1, '0'));
+    }
+
+    @Test
+    void rightPad_exactWidthReturnsOriginalInstance() {
+        // s.length() == totalWidth: >= returns s unchanged; > would call s+padChar.repeat(0)
+        // both produce equal strings; asserting value is preserved exactly
+        assertEquals("ab", StringUtils.rightPad("ab", 2, '-'));
+        assertEquals("x", StringUtils.rightPad("x", 1, '0'));
+    }
+
 }

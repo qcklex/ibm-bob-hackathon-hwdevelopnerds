@@ -92,6 +92,22 @@ class DateRangeUtilsTest {
         assertEquals(LocalDate.of(2024, 1, 18), result[1]);
     }
 
+    @Test
+    void expand_zeroDaysIsAllowed() {
+        // days=0 must NOT throw; the range should be returned unchanged.
+        // Kills the boundary mutant that changes `days < 0` to `days <= 0`.
+        LocalDate[] result = DateRangeUtils.expand(JAN7, JAN15, 0);
+        assertEquals(JAN7,  result[0]);
+        assertEquals(JAN15, result[1]);
+    }
+
+    @Test
+    void expand_negativeDaysThrows() {
+        // days=-1 is exactly one step below the boundary and must throw.
+        assertThrows(IllegalArgumentException.class,
+                () -> DateRangeUtils.expand(JAN7, JAN15, -1));
+    }
+
     // ── splitIntoChunks ──────────────────────────────────────────────────────
 
     @Test
@@ -109,6 +125,24 @@ class DateRangeUtilsTest {
         assertEquals(4, chunks.size());
         assertEquals(JAN10, chunks.get(3)[0]);
         assertEquals(JAN10, chunks.get(3)[1]);
+    }
+
+    @Test
+    void splitIntoChunks_chunkDaysZeroThrows() {
+        // chunkDays=0 must throw; kills the boundary mutant that changes
+        // `chunkDays <= 0` to `chunkDays < 0`, which would let 0 through.
+        assertThrows(IllegalArgumentException.class,
+                () -> DateRangeUtils.splitIntoChunks(JAN1, JAN7, 0));
+    }
+
+    @Test
+    void splitIntoChunks_chunkDaysOneLargerThanRange() {
+        // 1-day range (JAN1..JAN1) with chunkDays=2: should produce exactly 1 chunk
+        // whose both bounds equal the single day.
+        List<LocalDate[]> chunks = DateRangeUtils.splitIntoChunks(JAN1, JAN1, 2);
+        assertEquals(1, chunks.size());
+        assertEquals(JAN1, chunks.get(0)[0]);
+        assertEquals(JAN1, chunks.get(0)[1]);
     }
 
     // ── weekdaysInRange ──────────────────────────────────────────────────────

@@ -5,9 +5,11 @@ import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -157,5 +159,158 @@ class SimpleCacheTest {
     void constructor_zeroMaxSizeThrows() {
         assertThrows(IllegalArgumentException.class,
                 () -> new SimpleCache<>(0, Duration.ZERO));
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
+    /** Creates a mutable clock backed by an AtomicReference<Instant>. */
+    private static AtomicReference<Instant> mutableClock(Instant start,
+            Clock[] clockOut) {
+        AtomicReference<Instant> ref = new AtomicReference<>(start);
+        clockOut[0] = new Clock() {
+            @Override public ZoneId getZone() { return ZoneOffset.UTC; }
+            @Override public Clock withZone(ZoneId z) { return this; }
+            @Override public Instant instant() { return ref.get(); }
+        };
+        return ref;
+    }
+
+    // ── size() with non-zero TTL ──────────────────────────────────────────────
+
+    @Test
+    void size_withNonZeroTtl_noExpiredEntries_countIsCorrect() {
+        // Exercises line 98: the !ttl.isZero() branch is entered.
+        // The removeIf lambda is called for each entry and returns false (not expired).
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        SimpleCache<String, Integer> cache = new SimpleCache<>(10, Duration.ofSeconds(60),
+                Clock.fixed(t0, ZoneOffset.UTC));
+        cache.put("a", 1);
+        cache.put("b", 2);
+        assertEquals(2, cache.size());
+    }
+
+    @Test
+    void size_withNonZeroTtl_expiredEntriesAreRemoved() {
+        // Exercises line 99 lambda returning true (entry IS expired → removed).
+        // Uses a mutable clock: entries are inserted at t0, clock advances past TTL,
+        // then size() triggers removeIf which removes them via the lambda.
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        Clock[] clockHolder = new Clock[1];
+        AtomicReference<Instant> now = mutableClock(t0, clockHolder);
+
+        SimpleCache<String, String> cache = new SimpleCache<>(10, Duration.ofSeconds(5), clockHolder[0]);
+        cache.put("x", "hello");
+        cache.put("y", "world");
+
+        // Advance clock past TTL (5 s)
+        now.set(t0.plusSeconds(10));
+
+        // size() should purge both expired entries via removeIf lambda and return 0
+        assertEquals(0, cache.size());
+    }
+
+    @Test
+    void size_withNonZeroTtl_onlyExpiredEntriesRemoved() {
+        // Lambda returns true for expired entries and false for fresh ones in the same pass.
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        Clock[] clockHolder = new Clock[1];
+        AtomicReference<Instant> now = mutableClock(t0, clockHolder);
+
+        SimpleCache<String, String> cache = new SimpleCache<>(10, Duration.ofSeconds(5), clockHolder[0]);
+        cache.put("old", "stale");
+
+        // Advance past TTL, then add a fresh entry at the new time
+        now.set(t0.plusSeconds(10));
+        cache.put("fresh", "new");
+
+        // size() must purge "old" (expired) but keep "fresh" (inserted at t0+10s, not yet expired)
+        assertEquals(1, cache.size());
+        assertEquals(Optional.of("new"), cache.get("fresh"));
+    }
+
+    // ── isEmpty() ────────────────────────────────────────────────────────────
+
+    @Test
+    void isEmpty_emptyCache_returnsTrue() {
+        // Exercises line 106: isEmpty() returns true when there are no entries.
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        SimpleCache<String, Integer> cache = new SimpleCache<>(10, Duration.ofSeconds(60),
+                Clock.fixed(t0, ZoneOffset.UTC));
+        assertTrue(cache.isEmpty());
+    }
+
+    @Test
+    void isEmpty_nonEmptyCache_returnsFalse() {
+        // Exercises isEmpty() returning false.
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        SimpleCache<String, Integer> cache = new SimpleCache<>(10, Duration.ofSeconds(60),
+                Clock.fixed(t0, ZoneOffset.UTC));
+        cache.put("x", 1);
+        assertFalse(cache.isEmpty());
+    }
+
+    // ── refresh() ────────────────────────────────────────────────────────────
+
+    @Test
+    void refresh_existingNonExpiredEntry_updatesTimestamp() {
+        // Exercises line 124: entry != null && !isExpired(entry) is true → entry refreshed.
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        Clock[] clockHolder = new Clock[1];
+        AtomicReference<Instant> now = mutableClock(t0, clockHolder);
+
+        SimpleCache<String, String> cache = new SimpleCache<>(10, Duration.ofSeconds(5), clockHolder[0]);
+        cache.put("k", "v");
+
+        // Advance to t0+3s (not yet expired), refresh, then advance to t0+7s.
+        // Without refresh, inserted at t0 → expires at t0+5s (already gone at t0+7s).
+        // With refresh at t0+3s, new insertedAt=t0+3s → expires at t0+8s → still live at t0+7s.
+        now.set(t0.plusSeconds(3));
+        cache.refresh("k");
+
+        now.set(t0.plusSeconds(7));
+        assertEquals(Optional.of("v"), cache.get("k"));
+    }
+
+    @Test
+    void refresh_missingKey_isNoOp() {
+        // Exercises line 124: entry == null → the if-body is skipped.
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        SimpleCache<String, String> cache = new SimpleCache<>(10, Duration.ofSeconds(60),
+                Clock.fixed(t0, ZoneOffset.UTC));
+        assertDoesNotThrow(() -> cache.refresh("nonexistent"));
+        assertEquals(Optional.empty(), cache.get("nonexistent"));
+    }
+
+    @Test
+    void refresh_expiredEntry_isNoOp() {
+        // Exercises line 124: entry != null BUT isExpired(entry) is true → if-body skipped.
+        // Also exercises isExpired returning true (line 142) and isExpiredAt returning true (line 147).
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        Clock[] clockHolder = new Clock[1];
+        AtomicReference<Instant> now = mutableClock(t0, clockHolder);
+
+        SimpleCache<String, String> cache = new SimpleCache<>(10, Duration.ofSeconds(5), clockHolder[0]);
+        cache.put("k", "v");
+
+        // Advance past TTL so the entry is expired
+        now.set(t0.plusSeconds(10));
+
+        // refresh should be a no-op: entry is in the store but is expired
+        assertDoesNotThrow(() -> cache.refresh("k"));
+        // The entry should not be accessible after attempted refresh
+        assertEquals(Optional.empty(), cache.get("k"));
+    }
+
+    // ── isExpiredAt returning false (non-zero TTL, not yet past boundary) ─────
+
+    @Test
+    void get_entryNotExpiredAtExactInsertTime_returnsValue() {
+        // Exercises isExpiredAt returning false when ttl != 0 and now == insertedAt
+        // (i.e. now.isAfter(insertedAt+ttl) == false).
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        SimpleCache<String, String> cache = new SimpleCache<>(10, Duration.ofSeconds(5),
+                Clock.fixed(t0, ZoneOffset.UTC));
+        cache.put("k", "v");
+        assertEquals(Optional.of("v"), cache.get("k"));
     }
 }

@@ -180,4 +180,120 @@ class ValidatorsTest {
         assertFalse(Validators.hasLength("hi", 3, 10));
         assertFalse(Validators.hasLength("toolongstring", 1, 5));
     }
+    // ── isPostalCa ───────────────────────────────────────────────────────────
+
+    @Test
+    void isPostalCa_valid() {
+        assertTrue(Validators.isPostalCa("K1A 0B1"));
+        assertTrue(Validators.isPostalCa("M5V0L1"));
+        assertTrue(Validators.isPostalCa("K1A-0B1")); // dash separator
+    }
+
+    @Test
+    void isPostalCa_invalid() {
+        assertFalse(Validators.isPostalCa(null));
+        assertFalse(Validators.isPostalCa("12345"));
+        assertFalse(Validators.isPostalCa("K1A 0B"));
+    }
+
+    // ── isPostalUk ───────────────────────────────────────────────────────────
+
+    @Test
+    void isPostalUk_valid() {
+        assertTrue(Validators.isPostalUk("SW1A 1AA"));
+        assertTrue(Validators.isPostalUk("W1A 0AX"));
+        assertTrue(Validators.isPostalUk("EC1A 1BB"));
+    }
+
+    @Test
+    void isPostalUk_invalid() {
+        assertFalse(Validators.isPostalUk(null));
+        assertFalse(Validators.isPostalUk("12345"));
+        assertFalse(Validators.isPostalUk("SW1A1AA")); // missing required space
+    }
+
+    // ── isCreditCard additional ───────────────────────────────────────────────
+
+    @Test
+    void isCreditCard_shortNumberRejected() {
+        // 12 digits — below the 13-digit minimum, must return false
+        assertFalse(Validators.isCreditCard("123456789012"));
+    }
+
+    @Test
+    void isCreditCard_luhnSumAddition() {
+        // Known-valid 16-digit Luhn numbers; exercises sum += n with high digits
+        // (if mutant changes += to -=, Luhn sum will be wrong and these fail)
+        assertTrue(Validators.isCreditCard("4532015112830366")); // Visa — already tested
+        assertTrue(Validators.isCreditCard("4111111111111111")); // Visa test number
+        assertTrue(Validators.isCreditCard("6011111111111117")); // Discover test number
+        assertFalse(Validators.isCreditCard("4111111111111112")); // one digit off → bad Luhn
+    }
+
+    // ── isIdentifier additional ───────────────────────────────────────────────
+
+    @Test
+    void isIdentifier_simpleNameReturnsTrue() {
+        // Exercises the return true at end of isIdentifier
+        assertTrue(Validators.isIdentifier("myVar"));
+        assertTrue(Validators.isIdentifier("x"));
+    }
+
+    // ── inRange double ────────────────────────────────────────────────────────
+
+    @Test
+    void inRange_double_basic() {
+        assertTrue(Validators.inRange(5.0, 1.0, 10.0));
+        assertFalse(Validators.inRange(0.0, 1.0, 10.0));
+        assertTrue(Validators.inRange(1.0, 1.0, 10.0));   // exactly at min
+        assertTrue(Validators.inRange(10.0, 1.0, 10.0));  // exactly at max
+        assertFalse(Validators.inRange(10.1, 1.0, 10.0)); // just above max
+        assertFalse(Validators.inRange(0.9, 1.0, 10.0));  // just below min
+    }
+
+    // ── inRange long boundary ─────────────────────────────────────────────────
+
+    @Test
+    void inRange_long_boundaryExactMin() {
+        assertTrue(Validators.inRange(1L, 1L, 10L));   // exactly at min
+        assertFalse(Validators.inRange(0L, 1L, 10L));  // one below min
+    }
+
+    @Test
+    void inRange_long_boundaryExactMax() {
+        assertTrue(Validators.inRange(10L, 1L, 10L));  // exactly at max
+        assertFalse(Validators.inRange(11L, 1L, 10L)); // one above max
+    }
+
+    // ── hasLength additional ──────────────────────────────────────────────────
+
+    @Test
+    void hasLength_nullWithMinLenZero() {
+        assertTrue(Validators.hasLength(null, 0, 10));
+    }
+
+    @Test
+    void hasLength_nullWithMinLenNonZero() {
+        assertFalse(Validators.hasLength(null, 1, 10));
+    }
+
+    @Test
+    void hasLength_exactlyAtMinLength() {
+        assertTrue(Validators.hasLength("abc", 3, 10)); // length == minLen
+    }
+
+    @Test
+    void hasLength_exactlyAtMaxLength() {
+        assertTrue(Validators.hasLength("hello", 1, 5)); // length == maxLen
+    }
+
+    @Test
+    void hasLength_oneLessThanMin() {
+        assertFalse(Validators.hasLength("ab", 3, 10));
+    }
+
+    @Test
+    void hasLength_oneMoreThanMax() {
+        assertFalse(Validators.hasLength("hello!", 1, 5));
+    }
 }
