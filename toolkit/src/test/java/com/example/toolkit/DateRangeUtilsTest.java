@@ -123,8 +123,18 @@ class DateRangeUtilsTest {
         // 10 days split into chunks of 3 → [1..3], [4..6], [7..9], [10..10]
         List<LocalDate[]> chunks = DateRangeUtils.splitIntoChunks(JAN1, JAN10, 3);
         assertEquals(4, chunks.size());
-        assertEquals(JAN10, chunks.get(3)[0]);
-        assertEquals(JAN10, chunks.get(3)[1]);
+        // chunk 0: Jan 1..Jan 3
+        assertEquals(JAN1,                          chunks.get(0)[0]);
+        assertEquals(LocalDate.of(2024, 1, 3),      chunks.get(0)[1]);
+        // chunk 1: Jan 4..Jan 6
+        assertEquals(LocalDate.of(2024, 1, 4),      chunks.get(1)[0]);
+        assertEquals(LocalDate.of(2024, 1, 6),      chunks.get(1)[1]);
+        // chunk 2: Jan 7..Jan 9
+        assertEquals(LocalDate.of(2024, 1, 7),      chunks.get(2)[0]);
+        assertEquals(LocalDate.of(2024, 1, 9),      chunks.get(2)[1]);
+        // chunk 3 (remainder): Jan 10..Jan 10
+        assertEquals(JAN10,                         chunks.get(3)[0]);
+        assertEquals(JAN10,                         chunks.get(3)[1]);
     }
 
     @Test
@@ -152,9 +162,15 @@ class DateRangeUtilsTest {
         // 2024-01-01 is Monday
         List<LocalDate> days = DateRangeUtils.weekdaysInRange(JAN1, JAN7);
         assertEquals(5, days.size());
+        // Mon–Fri must all be present
+        assertTrue(days.contains(LocalDate.of(2024, 1, 1)));  // Monday
+        assertTrue(days.contains(LocalDate.of(2024, 1, 2)));  // Tuesday
+        assertTrue(days.contains(LocalDate.of(2024, 1, 3)));  // Wednesday
+        assertTrue(days.contains(LocalDate.of(2024, 1, 4)));  // Thursday
+        assertTrue(days.contains(LocalDate.of(2024, 1, 5)));  // Friday
         // Saturday and Sunday excluded
-        assertFalse(days.contains(LocalDate.of(2024, 1, 6)));
-        assertFalse(days.contains(LocalDate.of(2024, 1, 7)));
+        assertFalse(days.contains(LocalDate.of(2024, 1, 6))); // Saturday
+        assertFalse(days.contains(LocalDate.of(2024, 1, 7))); // Sunday
     }
 
     // ── merge ────────────────────────────────────────────────────────────────

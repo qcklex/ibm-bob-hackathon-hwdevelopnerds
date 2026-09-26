@@ -13,7 +13,11 @@ class MoneyUtilsTest {
 
     @Test
     void round_halfUp() {
-        assertEquals(new BigDecimal("1.24"), MoneyUtils.round(new BigDecimal("1.235"), 2));
+        // 1.225 → HALF_UP gives 1.23; HALF_EVEN would give 1.22 (rounds to even)
+        // This uniquely distinguishes HALF_UP from HALF_EVEN.
+        assertEquals(new BigDecimal("1.23"), MoneyUtils.round(new BigDecimal("1.225"), 2));
+        // 1.224 → HALF_UP gives 1.22 (below the .5 threshold, rounds down)
+        assertEquals(new BigDecimal("1.22"), MoneyUtils.round(new BigDecimal("1.224"), 2));
     }
 
     @Test

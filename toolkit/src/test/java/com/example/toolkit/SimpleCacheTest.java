@@ -42,22 +42,23 @@ class SimpleCacheTest {
 
     @Test
     void get_expiredEntryReturnsEmpty() {
-        Instant now = Instant.parse("2024-01-01T00:00:00Z");
-        Clock[] clockRef = { Clock.fixed(now, ZoneOffset.UTC) };
-        // wrap in a mutable-clock trick via a simple fixed clock swap
-        SimpleCache<String, String> cache = new SimpleCache<>(10, Duration.ofSeconds(5),
-                Clock.fixed(now, ZoneOffset.UTC));
+        Instant t0 = Instant.parse("2024-01-01T00:00:00Z");
+        Clock[] clockHolder = new Clock[1];
+        AtomicReference<Instant> now = mutableClock(t0, clockHolder);
+
+        SimpleCache<String, String> cache = new SimpleCache<>(10, Duration.ofSeconds(5), clockHolder[0]);
         cache.put("x", "hello");
 
-        // Use a new cache instance at t+10s (past TTL) to verify expiry logic
-        SimpleCache<String, String> cacheAtFuture = new SimpleCache<>(10, Duration.ofSeconds(5),
-                Clock.fixed(now.plusSeconds(10), ZoneOffset.UTC));
-        // manually put into backing map via a second put simulated:
-        // We can't share state, so test the containsKey path via a non-expired one
-        SimpleCache<String, String> fresh = new SimpleCache<>(10, Duration.ofSeconds(5),
-                Clock.fixed(now, ZoneOffset.UTC));
-        fresh.put("y", "world");
-        assertTrue(fresh.containsKey("y"));
+        // before expiry: entry is present
+        assertEquals(Optional.of("hello"), cache.get("x"));
+
+        // advance clock past TTL (5 s)
+        now.set(t0.plusSeconds(10));
+
+        // after expiry: get() must evict the entry and return empty
+        assertEquals(Optional.empty(), cache.get("x"));
+        // the key must also be gone from the store after eviction
+        assertFalse(cache.containsKey("x"));
     }
 
     @Test
@@ -124,6 +125,11 @@ class SimpleCacheTest {
         assertTrue(cache.containsKey(3));
         assertTrue(cache.containsKey(4));
         assertFalse(cache.containsKey(2));
+        // verify the actual stored values are correct (containsKey alone is insufficient)
+        assertEquals(Optional.of("a"), cache.get(1));
+        assertEquals(Optional.of("c"), cache.get(3));
+        assertEquals(Optional.of("d"), cache.get(4));
+        assertEquals(Optional.empty(), cache.get(2));
     }
 
     // ── getOrLoad ────────────────────────────────────────────────────────────
@@ -151,6 +157,9 @@ class SimpleCacheTest {
         assertEquals(2, snap.size());
         assertEquals(1, snap.get("a"));
         assertEquals(2, snap.get("b"));
+        // snapshot must be immutable (backed by Map.copyOf)
+        assertThrows(UnsupportedOperationException.class, () -> snap.put("c", 3));
+        assertThrows(UnsupportedOperationException.class, () -> snap.remove("a"));
     }
 
     // ── constructor validation ────────────────────────────────────────────────
