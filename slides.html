@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mutation-Testing Improvement Loop — Slides</title>
+<style>
+  @media print {
+    html, body { margin: 0; padding: 0; background: #fff; }
+    .slide { page-break-after: always; page-break-inside: avoid; }
+    .slide:last-child { page-break-after: auto; }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    background: #f7f8fa;
+    color: #1f2328;
+  }
+
+  /* --- Slide shell -------------------------------------------------- */
+  .slide {
+    width: 1280px;
+    min-height: 720px;
+    margin: 0 auto 32px;
+    padding: 64px 80px 48px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+  }
+
+  /* accent bar top */
+  .slide::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: #3b82d4;
+  }
+
+  /* slide number */
+  .slide-num {
+    position: absolute;
+    bottom: 24px;
+    right: 32px;
+    font-size: 11px;
+    color: #adb5bd;
+    letter-spacing: 0.08em;
+  }
+
+  /* project label */
+  .slide-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7c5cd8;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: #1f2328;
+    margin-bottom: 32px;
+  }
+
+  h2 em {
+    color: #3b82d4;
+    font-style: normal;
+  }
+
+  p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #57606a;
+    max-width: 780px;
+  }
+
+  /* --- Utility -------------------------------------------------------- */
+  .two-col {
+    display: flex;
+    gap: 56px;
+    flex: 1;
+    align-items: flex-start;
+  }
+
+  .col { flex: 1; }
+
+  /* --- Callout box ---------------------------------------------------- */
+  .callout {
+    background: #f7f8fa;
+    border-left: 3px solid #3b82d4;
+    border-radius: 0 6px 6px 0;
+    padding: 18px 24px;
+    margin-top: 24px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #1f2328;
+    max-width: 780px;
+  }
+
+  .callout strong { color: #1f2328; }
+
+  /* --- Stats row ------------------------------------------------------ */
+  .stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 32px;
+  }
+
+  .stat-card {
+    flex: 1;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px 28px;
+  }
+
+  .stat-card .val {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1f2328;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-card .val.good { color: #16a34a; }
+  .stat-card .val.bad  { color: #dc2626; }
+  .stat-card .val.neu  { color: #3b82d4; }
+
+  .stat-card .lbl {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+  }
+
+  /* --- Survivor table ------------------------------------------------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 24px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #6b7280;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0f1f3;
+    color: #57606a;
+    line-height: 1.45;
+  }
+
+  td:first-child { font-weight: 600; color: #1f2328; }
+
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+    background: #f0f1f3;
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: #7c5cd8;
+  }
+
+  /* --- Step list ------------------------------------------------------ */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .step {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    flex: 0 0 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #3b82d4;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .step-body strong {
+    display: block;
+    font-size: 15px;
+    color: #1f2328;
+    margin-bottom: 3px;
+  }
+
+  .step-body span {
+    font-size: 14px;
+    color: #57606a;
+    line-height: 1.55;
+  }
+
+  /* --- Bob usage cards ----------------------------------------------- */
+  .bob-cards {
+    display: flex;
+    gap: 24px;
+    margin-top: 32px;
+    flex: 1;
+    align-items: stretch;
+  }
+
+  .bob-card {
+    flex: 1;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bob-card .icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+
+  .bob-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2328;
+  }
+
+  .bob-card p {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #57606a;
+  }
+
+  .bob-card code {
+    display: inline-block;
+    margin-top: 6px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: #ede9fb;
+    color: #7c5cd8;
+    width: fit-content;
+  }
+
+  /* --- Results chart -------------------------------------------------- */
+  .results-layout {
+    display: flex;
+    gap: 56px;
+    flex: 1;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .chart-wrap {
+    flex: 0 0 580px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f7f8fa;
+    padding: 6px;
+  }
+
+  .chart-wrap img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+  }
+
+  .before-after {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .ba-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .ba-metric {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2328;
+  }
+
+  .ba-val {
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    padding: 10px 0;
+    border-radius: 6px;
+    background: #f7f8fa;
+    color: #57606a;
+    border: 1px solid #e5e7eb;
+  }
+
+  .ba-val.before { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+  .ba-val.after  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+
+  .ba-head {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+    text-align: center;
+  }
+
+  /* --- What's next ---------------------------------------------------- */
+  .next-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 28px;
+    flex: 1;
+    align-content: start;
+  }
+
+  .next-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px 22px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .next-marker {
+    flex: 0 0 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3b82d4;
+    margin-top: 6px;
+  }
+
+  .next-item h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2328;
+    margin-bottom: 5px;
+  }
+
+  .next-item p {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #57606a;
+  }
+
+  /* --- Footer --------------------------------------------------------- */
+  .global-footer {
+    text-align: center;
+    padding: 20px 0 40px;
+    font-size: 11px;
+    color: #adb5bd;
+    border-top: 1px solid #e5e7eb;
+    width: 1280px;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SLIDE 1 — THE PROBLEM
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Mutation-Testing Improvement Loop · HWDevelopNerds</div>
+  <h2>The Problem: <em>Line Coverage Lies</em></h2>
+
+  <div class="two-col">
+    <div class="col">
+      <p>A Java utility library ships with a 95% line-coverage score — green across the board.
+        Most teams would stop here.
+        But line coverage only proves a line was <em>executed</em>, not that any assertion
+        caught a wrong result.</p>
+
+      <p style="margin-top:18px">Running PIT mutation testing reveals the real picture:
+        PIT makes tiny logic changes — flips a conditional, removes a return value,
+        inverts a boundary — then checks whether any test fails.
+        <strong style="color:#1f2328">82% of mutants were killed. 18% slipped through.</strong></p>
+
+      <div class="callout">
+        <strong>The gap:</strong> 95% line coverage &nbsp;·&nbsp; 82% mutation score.<br>
+        Roughly <strong>1 in 5 logic mutations</strong> survives undetected.
+        The lines executed, but nothing asserted the correct outcome.
+      </div>
+    </div>
+
+    <div class="col">
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Line</th>
+            <th>Why it survives</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>MoneyUtils.java</code></td>
+            <td>26</td>
+            <td>Test covers the line but never hits the exact boundary value</td>
+          </tr>
+          <tr>
+            <td><code>Validators.java</code></td>
+            <td>128</td>
+            <td>Overload is never called — marked <code>NO_COVERAGE</code></td>
+          </tr>
+          <tr>
+            <td><code>SimpleCache.java</code></td>
+            <td>142</td>
+            <td>Happy-path test never exercises the expiry branch</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="stats" style="margin-top:28px">
+        <div class="stat-card">
+          <div class="val neu">287</div>
+          <div class="lbl">Mutants generated</div>
+        </div>
+        <div class="stat-card">
+          <div class="val bad">52</div>
+          <div class="lbl">Survivors (baseline)</div>
+        </div>
+        <div class="stat-card">
+          <div class="val">82%</div>
+          <div class="lbl">Mutation score</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">1 / 5</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SLIDE 2 — THE APPROACH
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Mutation-Testing Improvement Loop · HWDevelopNerds</div>
+  <h2>The Approach: <em>Automated Kill Loop</em></h2>
+
+  <div class="two-col">
+    <div class="col">
+      <p>Each round is driven by a single shell command. IBM Bob's
+        <strong style="color:#1f2328">mutation-climb skill</strong> runs the loop
+        autonomously: it reads surviving mutants, decides which tests to write,
+        writes them, then re-runs PIT to verify the kill.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Run PIT via <code>sh run_round.sh</code></strong>
+            <span>Compiles the project, executes mutation analysis, writes raw XML to <code>pit-output.txt</code></span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Parse survivors</strong>
+            <span><code>report.py</code> converts <code>mutations.xml</code> into <code>survivors.md</code> and appends a row to <code>rounds.csv</code></span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Bob reads survivors and writes targeted tests</strong>
+            <span>Each surviving mutant is a concrete, precise test target — boundary assertion, missing overload call, or time-advance test</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Repeat until score plateaus or target is reached</strong>
+            <span>Goal: mutation score ≥ 90%. Every round, <code>survivors.md</code> shrinks and <code>chart.png</code> updates.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="callout">
+        <strong>Why this works:</strong><br>
+        Line coverage gives no direction — every uncovered mutant looks the same.
+        Mutation survivors give exact coordinates: file, line, mutation type.
+        Bob converts each coordinate into one focused test assertion.
+      </div>
+
+      <table style="margin-top:28px">
+        <thead>
+          <tr><th>File</th><th>Round-by-round output</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>survivors.md</code></td>
+            <td>Ranked list of still-alive mutants with file, line, and type</td>
+          </tr>
+          <tr>
+            <td><code>rounds.csv</code></td>
+            <td>Append-only log of line coverage and mutation score per round</td>
+          </tr>
+          <tr>
+            <td><code>chart.png</code></td>
+            <td>Visual progress curve across all rounds; regenerated by <code>chart.py</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="slide-num">2 / 5</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SLIDE 3 — HOW BOB IS USED
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Mutation-Testing Improvement Loop · HWDevelopNerds</div>
+  <h2>How <em>IBM Bob</em> Is Used</h2>
+
+  <p>Three Bob capabilities work together to make the loop autonomous: a domain skill, a custom mode, and parallel subagents.</p>
+
+  <div class="bob-cards">
+    <div class="bob-card">
+      <div class="tag">Skill</div>
+      <h3>mutation-climb</h3>
+      <p>A Bob skill stored at <code>.bob/skills/mutation-climb/SKILL.md</code>.
+        It contains the full loop protocol: how to invoke PIT, how to parse
+        <code>survivors.md</code>, how to rank mutants by kill probability,
+        and how to write focused JUnit 5 tests that target one mutation type at a time.</p>
+      <p style="margin-top:8px">Activated with <code>/mutation-climb</code> at the start of a session —
+        Bob then drives every round without further instruction.</p>
+      <code>/mutation-climb</code>
+    </div>
+
+    <div class="bob-card">
+      <div class="tag">Custom Mode</div>
+      <h3>Test Engineer mode</h3>
+      <p>A lean Bob mode that restricts the tool palette to exactly what mutation
+        testing needs: file read/write, symbol search, grep, and the Maven test runner.
+        Removing irrelevant tools keeps Bob focused and prevents accidental edits
+        outside <code>src/test/java/</code>.</p>
+      <p style="margin-top:8px">The mode also sets a role definition that primes Bob
+        to reason about assertion strength, branch coverage, and boundary conditions
+        rather than feature implementation.</p>
+      <code>mode: test-engineer</code>
+    </div>
+
+    <div class="bob-card">
+      <div class="tag">Subagents</div>
+      <h3>Parallel survivor analysis</h3>
+      <p>When a round produces a large survivor list, Bob spawns independent subagents —
+        one per class under test (<code>MoneyUtils</code>, <code>Validators</code>,
+        <code>SimpleCache</code>, etc.). Each subagent reads its class, reads the
+        survivors assigned to it, and returns a batch of test methods.</p>
+      <p style="margin-top:8px">The parent agent merges the results and writes a single
+        coherent test file per class, then triggers the next PIT run.</p>
+      <code>spawn_subagent</code>
+    </div>
+  </div>
+
+  <div class="slide-num">3 / 5</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SLIDE 4 — RESULTS CHART
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Mutation-Testing Improvement Loop · HWDevelopNerds</div>
+  <h2>Results: <em>14 Rounds, 13.7 pp Gain</em></h2>
+
+  <div class="results-layout">
+    <div class="chart-wrap">
+      <img src="chart.png" alt="Line coverage vs mutation score across 14 rounds">
+    </div>
+
+    <div class="before-after">
+      <p style="font-size:13.5px;margin-bottom:8px">
+        The blue curve is line coverage — it hits 95% in the early rounds and flatlines.
+        The green curve is mutation score — it keeps climbing as each round kills more survivors.
+        That divergence is the whole story.
+      </p>
+
+      <div class="ba-row">
+        <div class="ba-metric"></div>
+        <div class="ba-head">Baseline</div>
+        <div class="ba-head">Round 14</div>
+      </div>
+      <div class="ba-row">
+        <div class="ba-metric">Line coverage</div>
+        <div class="ba-val before">95%</div>
+        <div class="ba-val after">98%</div>
+      </div>
+      <div class="ba-row">
+        <div class="ba-metric">Mutation score</div>
+        <div class="ba-val before">82%</div>
+        <div class="ba-val after">95.7%</div>
+      </div>
+      <div class="ba-row">
+        <div class="ba-metric">Mutants generated</div>
+        <div class="ba-val">287</div>
+        <div class="ba-val">287</div>
+      </div>
+      <div class="ba-row">
+        <div class="ba-metric">Survivors</div>
+        <div class="ba-val before">52</div>
+        <div class="ba-val after">12</div>
+      </div>
+
+      <div class="callout" style="margin-top:16px;font-size:13.5px">
+        <strong>+13.7 pp</strong> mutation score improvement.
+        More than <strong>75% of previously surviving mutants</strong> are now killed.
+        Line coverage did not drive this — targeted assertions did.
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">4 / 5</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SLIDE 5 — WHAT IS NEXT
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="slide">
+  <div class="slide-label">Mutation-Testing Improvement Loop · HWDevelopNerds</div>
+  <h2>What Is <em>Next</em></h2>
+
+  <p>The loop proved the concept on a small utility library. The following steps scale it to real-world projects and make the skill generally reusable.</p>
+
+  <div class="next-grid">
+    <div class="next-item">
+      <div class="next-marker"></div>
+      <div>
+        <h3>Push mutation score to ≥ 95%</h3>
+        <p>The remaining 12 survivors cluster in time-sensitive and overloaded methods.
+          The next rounds will introduce clock-injection helpers and parameterised tests
+          to kill the residual boundary mutations.</p>
+      </div>
+    </div>
+
+    <div class="next-item">
+      <div class="next-marker" style="background:#7c5cd8"></div>
+      <div>
+        <h3>Publish mutation-climb as a shared Bob skill</h3>
+        <p>Package the skill with a generic <code>run_round.sh</code> template so any
+          Java Maven project can adopt the loop in under ten minutes — no bespoke
+          scripting required.</p>
+      </div>
+    </div>
+
+    <div class="next-item">
+      <div class="next-marker"></div>
+      <div>
+        <h3>Extend to other languages</h3>
+        <p>The skill protocol is language-agnostic at the Bob layer.
+          Port the PIT-specific shell commands to equivalents for Python (mutmut),
+          JavaScript (Stryker), and Go (go-mutesting) to broaden applicability.</p>
+      </div>
+    </div>
+
+    <div class="next-item">
+      <div class="next-marker" style="background:#7c5cd8"></div>
+      <div>
+        <h3>CI integration</h3>
+        <p>Add a GitHub Actions workflow that runs PIT on every pull request,
+          posts the mutation score as a PR check, and blocks merge if the score
+          drops below the configured threshold.</p>
+      </div>
+    </div>
+
+    <div class="next-item">
+      <div class="next-marker"></div>
+      <div>
+        <h3>Survivor-based PR review mode</h3>
+        <p>Train a Bob custom mode that reads the diff of an incoming PR and
+          cross-references it against known surviving mutant patterns —
+          flagging likely weak assertions before the code lands.</p>
+      </div>
+    </div>
+
+    <div class="next-item">
+      <div class="next-marker" style="background:#7c5cd8"></div>
+      <div>
+        <h3>Benchmark Bob models on test quality</h3>
+        <p>Use the reproducible rounds.csv metric as a cross-model benchmark:
+          run the same survivor list through different LLMs and measure how many
+          mutants each model kills per round to guide model selection.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">5 / 5</div>
+</div>
+
+<div class="global-footer">Made with IBM Bob</div>
+
+</body>
+</html>

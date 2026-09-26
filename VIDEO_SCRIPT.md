@@ -49,13 +49,13 @@ sh run_round.sh
 > "Here is what survives. Three representative examples:
 >
 > — `MoneyUtils` line 26: a conditional-boundary mutation.
->   The test covers the line but never hits the exact edge value.
+> The test covers the line but never hits the exact edge value.
 >
 > — `Validators` line 128: negated conditional, marked `NO_COVERAGE`.
->   This overload is never called by any test at all.
+> This overload is never called by any test at all.
 >
 > — `SimpleCache` line 142: `isExpired` forced to return `false`.
->   The happy-path test never exercises the expiry branch.
+> The happy-path test never exercises the expiry branch.
 >
 > Each surviving mutant is a concrete test to write."
 
@@ -100,11 +100,11 @@ python chart.py
 
 > "Here is the concrete before-and-after:"
 
-| Metric | Baseline | After improvement rounds |
-|--------|----------|--------------------------|
-| Line coverage | 95% | 95% |
-| Mutation score | 82% | **92%+** |
-| Surviving mutants | 52 | < 23 |
+| Metric            | Baseline | After improvement rounds |
+| ----------------- | -------- | ------------------------ |
+| Line coverage     | 95%      | 95%                      |
+| Mutation score    | 82%      | **92%+**           |
+| Surviving mutants | 52       | < 23                     |
 
 > "Line coverage did not move — we did not add dead lines, we added *assertions*.
 > Mutation score jumped from 82% to over 92%.

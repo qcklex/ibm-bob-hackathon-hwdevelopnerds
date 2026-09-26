@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mutation-Testing Improvement Loop</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    background: #0f1117;
+    color: #f0f2f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .layout {
+    display: flex;
+    align-items: center;
+    gap: 72px;
+    padding: 0 80px;
+    width: 100%;
+  }
+
+  .left {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7c5cd8;
+    border: 1px solid #7c5cd8;
+    border-radius: 4px;
+    padding: 4px 10px;
+    width: fit-content;
+  }
+
+  h1 {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: #f0f2f5;
+    letter-spacing: -0.02em;
+  }
+
+  h1 span {
+    color: #3b82d4;
+  }
+
+  .pitch {
+    font-size: 19px;
+    line-height: 1.55;
+    color: #9ca3b0;
+    max-width: 500px;
+  }
+
+  .meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 8px;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #f0f2f5;
+  }
+
+  .stat-value.up {
+    color: #34d399;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+  }
+
+  .divider {
+    width: 1px;
+    height: 40px;
+    background: #2d3240;
+    align-self: center;
+  }
+
+  .right {
+    flex: 0 0 560px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chart-frame {
+    border: 1px solid #2d3240;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #1a1d27;
+    padding: 8px;
+    width: 560px;
+  }
+
+  .chart-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 22px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: #3d4250;
+    letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <div class="left">
+    <span class="badge">IBM Hackathon · HWDevelopNerds</span>
+    <h1>Mutation-Testing<br><span>Improvement Loop</span></h1>
+    <p class="pitch">IBM Bob's mutation-climb skill drives an automated PIT loop that turns surviving mutants into precise test targets — lifting mutation score from 82% to 95%+ while line coverage stays flat.</p>
+    <div class="meta">
+      <div class="stat">
+        <span class="stat-value">82%</span>
+        <span class="stat-label">Mutation score before</span>
+      </div>
+      <div class="divider"></div>
+      <div class="stat">
+        <span class="stat-value up">95.7%</span>
+        <span class="stat-label">Mutation score after</span>
+      </div>
+      <div class="divider"></div>
+      <div class="stat">
+        <span class="stat-value">14</span>
+        <span class="stat-label">Rounds run</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="chart-frame">
+      <img src="chart.png" alt="Line coverage vs mutation score across 14 rounds">
+    </div>
+  </div>
+</div>
+
+<div class="footer">Made with IBM Bob</div>
+
+</body>
+</html>

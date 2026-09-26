@@ -65,14 +65,14 @@
 [INFO] Auto adding org.junit.platform:junit-platform-launcher:jar:1.10.2 < central (https://repo.maven.apache.org/maven2, default, releases) to classpath.
 [INFO] Mutating from /Users/alex/ibm-bob-hackathon-hwdevelopnerds/toolkit/target/classes
 [INFO] Defaulting target tests to match packages in test build directory
-/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\/-\|/-================================================================================
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\/-\|/-================================================================================
 - Mutators
 ================================================================================
 > org.pitest.mutationtest.engine.gregor.mutators.ConditionalsBoundaryMutator
->> Generated 32 Killed 15 (47%)
-> KILLED 15 SURVIVED 15 TIMED_OUT 0 NON_VIABLE 0 
+>> Generated 32 Killed 24 (75%)
+> KILLED 23 SURVIVED 8 TIMED_OUT 1 NON_VIABLE 0 
 > MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
-> NO_COVERAGE 2 
+> NO_COVERAGE 0 
 --------------------------------------------------------------------------------
 > org.pitest.mutationtest.engine.gregor.mutators.IncrementsMutator
 >> Generated 5 Killed 5 (100%)
@@ -93,16 +93,16 @@
 > NO_COVERAGE 0 
 --------------------------------------------------------------------------------
 > org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanTrueReturnValsMutator
->> Generated 39 Killed 30 (77%)
-> KILLED 30 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+>> Generated 39 Killed 37 (95%)
+> KILLED 37 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
 > MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
-> NO_COVERAGE 9 
+> NO_COVERAGE 2 
 --------------------------------------------------------------------------------
 > org.pitest.mutationtest.engine.gregor.mutators.InvertNegsMutator
->> Generated 2 Killed 1 (50%)
-> KILLED 1 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
+>> Generated 2 Killed 2 (100%)
+> KILLED 2 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
 > MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
-> NO_COVERAGE 1 
+> NO_COVERAGE 0 
 --------------------------------------------------------------------------------
 > org.pitest.mutationtest.engine.gregor.mutators.returns.NullReturnValsMutator
 >> Generated 16 Killed 16 (100%)
@@ -117,10 +117,10 @@
 > NO_COVERAGE 0 
 --------------------------------------------------------------------------------
 > org.pitest.mutationtest.engine.gregor.mutators.returns.BooleanFalseReturnValsMutator
->> Generated 29 Killed 22 (76%)
-> KILLED 22 SURVIVED 2 TIMED_OUT 0 NON_VIABLE 0 
+>> Generated 29 Killed 29 (100%)
+> KILLED 29 SURVIVED 0 TIMED_OUT 0 NON_VIABLE 0 
 > MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
-> NO_COVERAGE 5 
+> NO_COVERAGE 0 
 --------------------------------------------------------------------------------
 > org.pitest.mutationtest.engine.gregor.mutators.returns.EmptyObjectReturnValsMutator
 >> Generated 20 Killed 20 (100%)
@@ -129,10 +129,10 @@
 > NO_COVERAGE 0 
 --------------------------------------------------------------------------------
 > org.pitest.mutationtest.engine.gregor.mutators.NegateConditionalsMutator
->> Generated 120 Killed 110 (92%)
-> KILLED 109 SURVIVED 1 TIMED_OUT 1 NON_VIABLE 0 
+>> Generated 120 Killed 120 (100%)
+> KILLED 118 SURVIVED 0 TIMED_OUT 2 NON_VIABLE 0 
 > MEMORY_ERROR 0 NOT_STARTED 0 STARTED 0 RUN_ERROR 0 
-> NO_COVERAGE 9 
+> NO_COVERAGE 0 
 --------------------------------------------------------------------------------
 ================================================================================
 - Timings
@@ -141,21 +141,21 @@
 > scan classpath : < 1 second
 > coverage and dependency analysis : < 1 second
 > build mutation tests : < 1 second
-> run mutation analysis : 13 seconds
+> run mutation analysis : 20 seconds
 --------------------------------------------------------------------------------
-> Total  : 13 seconds
+> Total  : 20 seconds
 --------------------------------------------------------------------------------
 ================================================================================
 - Statistics
 ================================================================================
->> Line Coverage (for mutated classes only): 272/287 (95%)
->> Generated 287 mutations Killed 242 (84%)
->> Mutations with no coverage 26. Test strength 93%
->> Ran 334 tests (1.16 tests per mutation)
+>> Line Coverage (for mutated classes only): 283/287 (99%)
+>> Generated 287 mutations Killed 276 (96%)
+>> Mutations with no coverage 2. Test strength 97%
+>> Ran 406 tests (1.41 tests per mutation)
 Enhanced functionality available at https://www.arcmutate.com/
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  14.248 s
-[INFO] Finished at: 2026-09-26T20:53:38+01:00
+[INFO] Total time:  21.470 s
+[INFO] Finished at: 2026-09-26T22:23:49+01:00
 [INFO] ------------------------------------------------------------------------
