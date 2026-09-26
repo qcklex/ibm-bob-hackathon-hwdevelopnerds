@@ -190,4 +190,93 @@ class StringUtilsTest {
     void wordWrap_singleWordShorterThanWidth() {
         assertEquals(List.of("hello"), StringUtils.wordWrap("hello", 20));
     }
+
+    // ── truncate boundary ────────────────────────────────────────────────────
+
+    @Test
+    void truncate_maxLenZeroReturnsEllipsisOnly() {
+        // line 31: maxLen == 0 must NOT throw (boundary: < 0 vs <= 0)
+        assertEquals("...", StringUtils.truncate("hi", 0, "..."));
+    }
+
+    @Test
+    void truncate_exactLengthNotTruncated() {
+        // line 34: s.length() == maxLen must return s unchanged (boundary: <= vs <)
+        assertEquals("hello", StringUtils.truncate("hello", 5, "..."));
+    }
+
+    @Test
+    void truncate_oneLongerGetsTruncated() {
+        // line 34: s.length() == maxLen + 1 must be truncated
+        assertEquals("he...", StringUtils.truncate("hello!", 5, "..."));
+    }
+
+    // ── toSnakeCase boundary ─────────────────────────────────────────────────
+
+    @Test
+    void toSnakeCase_uppercaseFirstCharNoUnderscore() {
+        // line 54: i > 0 must not add underscore for first uppercase char
+        assertEquals("hello", StringUtils.toSnakeCase("Hello"));
+        assertEquals("hello_world", StringUtils.toSnakeCase("HelloWorld"));
+    }
+
+    // ── repeat boundary / null ───────────────────────────────────────────────
+
+    @Test
+    void repeat_nullInputReturnsNull() {
+        // line 77: NO_COVERAGE – null branch never exercised
+        assertNull(StringUtils.repeat(null, 3));
+    }
+
+    @Test
+    void repeat_negativeTimesReturnsEmpty() {
+        // line 78: boundary – times <= 0 vs times < 0; -1 must return ""
+        assertEquals("", StringUtils.repeat("abc", -1));
+    }
+
+    // ── leftPad / rightPad exact-width boundary ───────────────────────────────
+
+    @Test
+    void leftPad_exactWidthUnchanged() {
+        // line 88: s.length() == totalWidth must return s (boundary: >= vs >)
+        assertEquals("abc", StringUtils.leftPad("abc", 3, '0'));
+    }
+
+    @Test
+    void rightPad_exactWidthUnchanged() {
+        // line 97: s.length() == totalWidth must return s (boundary: >= vs >)
+        assertEquals("abc", StringUtils.rightPad("abc", 3, ' '));
+    }
+
+    // ── reverse null ─────────────────────────────────────────────────────────
+
+    @Test
+    void reverse_nullReturnsNull() {
+        // line 119: NO_COVERAGE – null path never exercised
+        assertNull(StringUtils.reverse(null));
+    }
+
+    // ── wordWrap boundary ────────────────────────────────────────────────────
+
+    @Test
+    void wordWrap_zeroWidthThrows() {
+        // line 138: lineWidth <= 0 boundary – 0 must throw (not just negatives)
+        assertThrows(IllegalArgumentException.class,
+                () -> StringUtils.wordWrap("hello", 0));
+    }
+
+    @Test
+    void wordWrap_wordFitsExactlyOnLine() {
+        // line 145: line.length() + 1 + word.length() <= lineWidth
+        // "ab" (2) + 1 + "cd" (2) = 5 == lineWidth 5 → fits on same line
+        List<String> lines = StringUtils.wordWrap("ab cd", 5);
+        assertEquals(List.of("ab cd"), lines);
+    }
+
+    @Test
+    void wordWrap_wordExceedsByOne() {
+        // line 145: "ab" (2) + 1 + "cde" (3) = 6 > lineWidth 5 → new line
+        List<String> lines = StringUtils.wordWrap("ab cde", 5);
+        assertEquals(List.of("ab", "cde"), lines);
+    }
 }
