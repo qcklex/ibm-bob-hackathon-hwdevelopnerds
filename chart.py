@@ -1,3 +1,4 @@
+import argparse
 import csv
 import matplotlib.pyplot as plt
 
@@ -30,7 +31,13 @@ def label_endpoints(ax, x: list, y: list, color: str) -> None:
 
 
 def main() -> None:
-    rounds, line_cov, mut_score = load_csv("rounds.csv")
+    parser = argparse.ArgumentParser(description="Plot line coverage and mutation score per round.")
+    parser.add_argument("csv", nargs="?", default="rounds.csv",
+                        help="rounds CSV to plot (default: rounds.csv, real whole-project rounds only)")
+    parser.add_argument("--out", default="chart.png", help="output image (default: chart.png)")
+    args = parser.parse_args()
+
+    rounds, line_cov, mut_score = load_csv(args.csv)
 
     fig, ax = plt.subplots(figsize=(8, 5))
 
@@ -47,12 +54,13 @@ def main() -> None:
     ax.set_ylabel("Score (%)")
     ax.set_title("Line Coverage & Mutation Score per Round")
     ax.set_xticks(rounds)
+    ax.margins(x=0.06)
     ax.legend()
     ax.grid(axis="y", linestyle="--", alpha=0.4)
 
     fig.tight_layout()
-    fig.savefig("chart.png", dpi=150)
-    print("Saved chart.png")
+    fig.savefig(args.out, dpi=150)
+    print(f"Saved {args.out} from {args.csv}")
 
 
 if __name__ == "__main__":

@@ -15,7 +15,8 @@ Key files:
 | [`toolkit/BASELINE.md`](toolkit/BASELINE.md) | Mutation-coverage snapshot recorded before any improvement rounds |
 | [`run_round.sh`](run_round.sh) | One-command script: runs PIT, copies `mutations.xml`, and regenerates `survivors.md` + `rounds.csv` |
 | [`survivors.md`](survivors.md) | Latest list of surviving mutants the test suite has not yet killed |
-| [`rounds.csv`](rounds.csv) | Round-by-round log of line coverage and mutation score |
+| [`rounds.csv`](rounds.csv) | Round-by-round log of line coverage and mutation score. **Whole project only** (287 mutants), so every row is comparable |
+| [`rounds_stringutils.csv`](rounds_stringutils.csv) | The T10 rounds on `StringUtils` alone (70 mutants). Kept apart because a single-class score is not comparable with the whole-project score |
 
 ---
 
@@ -75,7 +76,7 @@ To regenerate the progress chart at any time:
 python chart.py
 ```
 
-This reads [`rounds.csv`](rounds.csv) and writes `chart.png` (requires `matplotlib`).
+This reads [`rounds.csv`](rounds.csv) and writes `chart.png` (requires `matplotlib`). To plot another log, pass its path: `python chart.py rounds_stringutils.csv --out stringutils.png`.
 
 ---
 
