@@ -85,10 +85,15 @@ This reads [`rounds.csv`](rounds.csv) and writes `chart.png` (requires `matplotl
 | Round | Line Coverage (%) | Mutation Score (%) | Δ Mutation Score |
 |-------|------------------:|-------------------:|----------------:|
 | Baseline | 95.0 | 82.0 | — |
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
+| 7 | 95.0 | 81.9 | −0.1 |
+| 8 | 95.0 | 81.9 | 0.0 |
+| 9 | 95.0 | 81.9 | 0.0 |
+| 10 | 95.0 | 81.9 | 0.0 |
+| 11 | 95.0 | 81.9 | 0.0 |
+| 12 | 95.0 | 81.9 | 0.0 |
+| 17 | 95.0 | 84.3 | +2.4 |
+| 18 | 99.0 | 96.2 | +11.9 |
+| 19 | 99.0 | 96.2 | 0.0 |
+| **20** | **99.0** | **95.8** | −0.4 |
 
-> Fill in each row after running `bash run_round.sh`. Target: mutation score ≥ 90%.
+> Target mutation score ≥ 90% — **achieved at round 18 (96.2%)** and held through round 20 (95.8%). ✅
