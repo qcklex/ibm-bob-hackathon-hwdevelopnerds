@@ -5,9 +5,9 @@ report.py — Parse PIT mutations.xml and update survivors.md / rounds.csv.
 Usage:
     python report.py \
         --xml   toolkit/mutations.xml \
-        --output survivors.md \
-        --csv   rounds.csv \
-        --pit-output pit-output.txt   # optional; used to read line coverage
+        --output results/survivors.md \
+        --csv   results/rounds.csv \
+        --pit-output results/pit-output.txt   # optional; used to read line coverage
 
 If --pit-output is absent, line_coverage is left as "" in rounds.csv.
 """
@@ -29,9 +29,9 @@ from zoneinfo import ZoneInfo
 def parse_args():
     p = argparse.ArgumentParser(description="PIT report parser")
     p.add_argument("--xml",        default="toolkit/mutations.xml",  help="Path to mutations.xml")
-    p.add_argument("--output",     default="survivors.md",           help="Output survivors markdown")
-    p.add_argument("--csv",        default="rounds.csv",             help="Rounds CSV to append to")
-    p.add_argument("--pit-output", default="pit-output.txt",         help="Raw PIT stdout for line coverage")
+    p.add_argument("--output",     default="results/survivors.md",   help="Output survivors markdown")
+    p.add_argument("--csv",        default="results/rounds.csv",     help="Rounds CSV to append to")
+    p.add_argument("--pit-output", default="results/pit-output.txt", help="Raw PIT stdout for line coverage")
     return p.parse_args()
 
 
@@ -74,7 +74,7 @@ def parse_xml(path):
 def read_line_coverage(path):
     """
     Looks for a line like:
-        >> Line Coverage (for mutated classes only): 272/287 (95%)
+        >> Line Coverage (for mutated classes only): 278/282 (99%)
     Returns the percentage string, e.g. "95", or "" if not found.
     """
     if not os.path.isfile(path):

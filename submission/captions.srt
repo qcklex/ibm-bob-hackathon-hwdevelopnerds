@@ -1,0 +1,68 @@
+1
+00:00:00,000 --> 00:00:08,000
+This Java library has a full JUnit 5 suite
+and 95% line coverage — green across the board.
+
+2
+00:00:08,000 --> 00:00:20,000
+But run PIT mutation testing instead: it flips a conditional,
+changes a boundary, removes a return value, and checks if any test fails.
+
+3
+00:00:20,000 --> 00:00:35,000
+82% mutation score. Roughly one in five logic mutations
+slips through completely undetected.
+
+4
+00:00:35,000 --> 00:00:41,000
+Line coverage can't see that gap. Mutation score can.
+
+5
+00:00:41,000 --> 00:00:45,000
+With Java, Maven and Python installed,
+every round is one command: sh run_round.sh
+
+6
+00:00:45,000 --> 00:00:55,000
+It compiles the project, runs PIT, and writes two files:
+survivors.md and a new row in rounds.csv.
+
+7
+00:00:55,000 --> 00:01:05,000
+Three survivors: MoneyUtils line 26 misses the exact boundary value.
+
+8
+00:01:05,000 --> 00:01:15,000
+Validators line 128 — an overload no test ever calls.
+
+9
+00:01:15,000 --> 00:01:25,000
+SimpleCache line 142 — the expiry branch never runs.
+
+10
+00:01:25,000 --> 00:01:40,000
+One focused test per survivor: a boundary assertion,
+a direct overload call, a time-advance test for the cache.
+
+11
+00:01:40,000 --> 00:01:55,000
+The score climbs, survivors.md gets shorter.
+Repeat: read, write a test, run.
+
+12
+00:01:55,000 --> 00:02:15,000
+chart.py plots this from rounds.csv.
+Blue = line coverage (95→99%). Green = mutation score (82→95.8%).
+
+13
+00:02:15,000 --> 00:02:20,000
+Coverage was already "done". Mutation score wasn't.
+
+14
+00:02:20,000 --> 00:02:40,000
+Before → After: Line coverage 95%→99% · Mutation score 82%→95.8% · Survivors 48→11
+
+15
+00:02:40,000 --> 00:03:00,000
+37 of 48 previously-surviving mutants are now caught.
+One survivor, one test, one command.

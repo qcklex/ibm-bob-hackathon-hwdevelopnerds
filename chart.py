@@ -32,8 +32,8 @@ def label_endpoints(ax, x: list, y: list, color: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Plot line coverage and mutation score per round.")
-    parser.add_argument("csv", nargs="?", default="rounds.csv",
-                        help="rounds CSV to plot (default: rounds.csv, real whole-project rounds only)")
+    parser.add_argument("csv", nargs="?", default="results/rounds.csv",
+                        help="rounds CSV to plot (default: results/rounds.csv, real whole-project rounds only)")
     parser.add_argument("--out", default="chart.png", help="output image (default: chart.png)")
     args = parser.parse_args()
 

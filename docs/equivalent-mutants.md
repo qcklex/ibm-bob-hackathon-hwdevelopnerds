@@ -1,6 +1,6 @@
 # Equivalent Mutants
 
-_Generated from PIT run: 2026-09-26 22:03 BST · 287 mutants · score 96.2%_
+_Checked against the clean-build PIT run of 2026-09-26 23:42 BST · 264 mutants · score 95.8%. The same 7 survivors are equivalent._
 
 The following 7 surviving mutants are **equivalent** — no test can ever distinguish them
 from the original because the observable behaviour is identical for every possible input.

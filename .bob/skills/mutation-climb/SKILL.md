@@ -28,10 +28,10 @@ write targeted JUnit 5 tests to kill them, then repeat.
 
 ## Step 1 — Establish the Baseline
 
-1. Read [`toolkit/BASELINE.md`](toolkit/BASELINE.md) and [`rounds.csv`](rounds.csv) to understand
+1. Read [`toolkit/BASELINE.md`](toolkit/BASELINE.md) and [`rounds.csv`](results/rounds.csv) to understand
    the current mutation score and how many rounds have run.
-2. Read [`survivors.md`](survivors.md) to see which mutants survived the last round.
-3. If `rounds.csv` is empty or missing, run PIT once now (Step 2) to establish the baseline before
+2. Read [`survivors.md`](results/survivors.md) to see which mutants survived the last round.
+3. If `results/rounds.csv` is empty or missing, run PIT once now (Step 2) to establish the baseline before
    proceeding.
 
 ---
@@ -41,9 +41,11 @@ write targeted JUnit 5 tests to kill them, then repeat.
 Execute PIT inside the `toolkit/` directory and capture stdout:
 
 ```bash
-cd toolkit && mvn -q test-compile org.pitest:pitest-maven:mutationCoverage \
+cd toolkit && mvn -q clean test-compile org.pitest:pitest-maven:mutationCoverage \
   | tee ../pit-output.txt ; cd ..
 ```
+
+`clean` forces a full rebuild, so stale classes in `target/` can never change the numbers.
 
 Expected report location: `toolkit/target/pit-reports/mutations.xml`.
 
@@ -53,18 +55,18 @@ If Maven exits non-zero, stop and report the error to the user — do not contin
 
 ## Step 3 — Parse the Report
 
-Run the bundled parser to update `survivors.md` and `rounds.csv`:
+Run the bundled parser to update `results/survivors.md` and `results/rounds.csv`:
 
 ```bash
 python3 .bob/skills/mutation-climb/scripts/report.py \
   --xml        toolkit/target/pit-reports/mutations.xml \
-  --output     survivors.md \
-  --csv        rounds.csv \
-  --pit-output pit-output.txt
+  --output     results/survivors.md \
+  --csv        results/rounds.csv \
+  --pit-output results/pit-output.txt
 ```
 
-Read the updated [`survivors.md`](survivors.md) to get the current survivor list, and read
-[`rounds.csv`](rounds.csv) to record the new mutation score for this round.
+Read the updated [`survivors.md`](results/survivors.md) to get the current survivor list, and read
+[`rounds.csv`](results/rounds.csv) to record the new mutation score for this round.
 
 ---
 
@@ -73,14 +75,14 @@ Read the updated [`survivors.md`](survivors.md) to get the current survivor list
 - **Reached target?** If the mutation score is ≥ the user's stated target (default 90 % when none
   stated), proceed to Step 7.
 - **No progress?** If the mutation score did not improve by at least 1 percentage point from the
-  previous round in `rounds.csv`, proceed to Step 7 with a "plateau" explanation.
+  previous round in `results/rounds.csv`, proceed to Step 7 with a "plateau" explanation.
 - **Continue?** Proceed to Step 5.
 
 ---
 
 ## Step 5 — Select Survivors to Kill
 
-From `survivors.md`, group surviving mutants by source file. Prioritise:
+From `results/survivors.md`, group surviving mutants by source file. Prioritise:
 
 1. **NO_COVERAGE** mutants first — they signal completely untested code paths.
 2. **SURVIVED** mutants on methods with the most survivors, to maximise test density per edit.
@@ -101,7 +103,7 @@ directly exercise the mutated line with a concrete expected value. Rules:
 - Tests must be deterministic and self-contained (no file I/O, no network, no `Thread.sleep`).
 - Never edit files under `src/main/` — only `src/test/`.
 - Never disable, skip, or weaken an existing test.
-- Use the exact method and class names from `survivors.md` to target the mutation precisely.
+- Use the exact method and class names from `results/survivors.md` to target the mutation precisely.
 
 After writing, verify the tests compile:
 
@@ -131,4 +133,4 @@ After each round, output a one-line status line:
 Round N | score: XX.X% (+Y.Y pp) | survivors: ZZ | target: TT%
 ```
 
-At the end of the session, summarise the full `rounds.csv` trajectory.
+At the end of the session, summarise the full `results/rounds.csv` trajectory.

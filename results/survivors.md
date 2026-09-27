@@ -1,7 +1,7 @@
 # Survivors
 
-_Generated: 2026-09-26 22:23 BST_  
-_Mutants generated: 287 · Mutation score: 96.2% · Line coverage: 99%_
+_Generated: 2026-09-27 15:38 BST_  
+_Mutants generated: 264 · Mutation score: 95.8% · Line coverage: 99%_
 
 **11 mutant(s) not killed** (SURVIVED or NO_COVERAGE).
 

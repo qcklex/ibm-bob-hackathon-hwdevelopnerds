@@ -118,3 +118,7 @@ build/
 # DO NOT REMOVE ABOVE PATTERNS
 # Add project-specific patterns below
 # ============================================
+# raw video/audio source clips - too large for git, live in submission/ locally only
+submission/*.mov
+submission/*.m4a
+submission/*.mp4
