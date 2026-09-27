@@ -132,3 +132,12 @@ The loop's shape — run tool → parse report → append `rounds.csv` → chart
 | Everything downstream (CSV append, `survivors.md`, `chart.py`, the skill's Steps 3–7) | — | unchanged | unchanged |
 
 `parse_xml()` in [`report.py`](.bob/skills/mutation-climb/scripts/report.py) is the only piece tied to PIT's output format. The skill's decision logic — plateau detection, target percentage, survivor prioritization — is already language-agnostic.
+
+---
+
+## Acknowledgments
+
+Built for the IBM Bob 2.0 Hackathon by [Alex Munoz Rueda](https://github.com/qcklex), with:
+
+- [**@dan48ua**](https://github.com/dan48ua) — built the initial sample project ([`4ade73d`](https://github.com/qcklex/ibm-bob-hackathon-hwdevelopnerds/commit/4ade73d)) and the repo's init/guardrail setup ([`bd2d152`](https://github.com/qcklex/ibm-bob-hackathon-hwdevelopnerds/commit/bd2d152)).
+- [**@Jakub768**](https://github.com/Jakub768) — proposed and voted for the Mutation Score Climber idea during planning, though he wasn't able to take part in the build.
